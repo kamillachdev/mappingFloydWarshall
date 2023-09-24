@@ -3,6 +3,8 @@ package com.example.mappingfloydwarshall
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.SeekBar
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
@@ -19,5 +21,26 @@ class MainActivity : AppCompatActivity() {
         }
         val alertDialog = builder.create()
         alertDialog.show()
+
+        val weightText = findViewById<TextView>(R.id.weightText)
+        val seek = findViewById<SeekBar>(R.id.weightSeekBar)
+
+        seek?.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seek: SeekBar,
+                progress: Int, fromUser: Boolean
+            ) {
+                weightText.text = progress.toString()
+            }
+
+            override fun onStartTrackingTouch(seek: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seek: SeekBar?) {
+
+            }
+        })
     }
 }
