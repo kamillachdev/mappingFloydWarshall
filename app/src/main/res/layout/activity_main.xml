@@ -221,5 +221,16 @@
         app:layout_constraintTop_toBottomOf="@+id/mapScheme"
         app:layout_constraintVertical_bias="0.084" />
 
+    <SeekBar
+        android:id="@+id/weightSeekBar"
+        android:layout_width="144dp"
+        android:layout_height="58dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mapScheme"
+        app:layout_constraintVertical_bias="0.242" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
