@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">mappingFloydWarshall</string>
+    <string name="empty">ㅤ</string>
 </resources>
