@@ -37,6 +37,9 @@ class MainActivity : AppCompatActivity() {
             ArrowConnection(findViewById(R.id.caveButton), findViewById(R.id.jungleButton), findViewById(R.id.caveJungleText))
         )
 
+        //GETTING DEFAULT FONT COLOR TO SET IT BACK ON RESET
+        val defaultTextColor = findViewById<TextView>(R.id.forestMountainsText).currentTextColor
+
         //START ALERT
         val builder = AlertDialog.Builder(this)
         builder.setTitle("OBSŁUGA PROGRAMU")
@@ -48,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         val alertDialog = builder.create()
         alertDialog.show()
 
-        //SEEKBAR USABILITY
+        //SEEKBAR FUNCTIONALITY
         val weightText = findViewById<TextView>(R.id.weightText)
         val seek = findViewById<SeekBar>(R.id.weightSeekBar)
 
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        //PICTURES BUTTONS USABILITY
+        //PICTURES BUTTONS FUNCTIONALITY
         val buttonsArray: Array<Button> = arrayOf(findViewById<Button>(R.id.forestButton), findViewById<Button>(R.id.swampsButton), findViewById<Button>(R.id.mountainsButton), findViewById<Button>(R.id.caveButton), findViewById<Button>(R.id.jungleButton))
         buttonsArray.forEachIndexed { index, button ->
             button.setOnClickListener {
@@ -90,6 +93,24 @@ class MainActivity : AppCompatActivity() {
                     selectedFirstButton = null
                     selectedSecondButton = null
                 }
+            }
+        }
+
+
+        val algorithmButton = findViewById<Button>(R.id.algorithmButton)
+
+        //CHECK IF ROUTE ON THE MAP IS SET CORRECTLY
+        algorithmButton.setOnClickListener {
+
+        }
+
+        //RESET BUTTON FUNCTIONALITY
+        val resetButton = findViewById<Button>(R.id.resetButton)
+
+        resetButton.setOnClickListener {
+            arrowConnections.forEach { connection ->
+                connection.textView.text = "0"
+                connection.textView.setTextColor(defaultTextColor)
             }
         }
     }
