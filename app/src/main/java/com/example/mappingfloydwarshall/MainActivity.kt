@@ -1,6 +1,7 @@
 package com.example.mappingfloydwarshall
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.SeekBar
@@ -8,8 +9,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import java.util.LinkedList
-import java.util.Queue
 import java.util.Stack
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +32,111 @@ class MainActivity : AppCompatActivity() {
         val button: Button,
         val connectedNodes: List<GraphNode>
     )
+
+    class GraphSolver(private val size: Int, private val context: Context) {
+
+        private val INF = Int.MAX_VALUE
+        private lateinit var distances: Array<IntArray>
+
+        fun runFloydWarshall(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>): List<GraphNode> {
+            initializeDistances(graph, arrowConnections)
+
+            for (k in 0 until size) {
+                for (i in 0 until size) {
+                    for (j in 0 until size) {
+                        if (distances[i][k] != INF && distances[k][j] != INF &&
+                            distances[i][k] + distances[k][j] < distances[i][j]
+                        ) {
+                            distances[i][j] = distances[i][k] + distances[k][j]
+                        }
+                    }
+                }
+            }
+
+            // Find the best path based on the distances matrix
+            val bestPath = findBestPath(graph)
+
+            // Highlight the best path
+            highlightBestPath(graph, arrowConnections, bestPath)
+
+            return bestPath
+        }
+
+        private fun initializeDistances(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
+            distances = Array(size) { IntArray(size) { INF } }
+
+            for (i in 0 until size) {
+                distances[i][i] = 0
+                val currentNode = graph[i]
+                for (neighbor in currentNode.connectedNodes) {
+                    val connection = arrowConnections.find {
+                        (it.button1 == currentNode.button && it.button2 == neighbor.button) ||
+                                (it.button1 == neighbor.button && it.button2 == currentNode.button)
+                    }
+                    val neighborIndex = graph.indexOfFirst { it.button == neighbor.button }
+                    val weight = connection?.textView?.text?.toString()?.toIntOrNull() ?: 0
+                    distances[i][neighborIndex] = weight
+                }
+            }
+        }
+
+        private fun findBestPath(graph: List<GraphNode>): List<GraphNode> {
+            // Find the best path based on the distances matrix
+            var bestPath: List<GraphNode>? = null
+            var minWeight = INF
+
+            for (i in 0 until size) {
+                for (j in 0 until size) {
+                    if (i != j && distances[i][j] < minWeight) {
+                        minWeight = distances[i][j]
+                        bestPath = reconstructPath(graph, i, j)
+                    }
+                }
+            }
+
+            return bestPath ?: emptyList()
+        }
+
+        private fun reconstructPath(graph: List<GraphNode>, start: Int, end: Int): List<GraphNode> {
+            val path = mutableListOf<GraphNode>()
+            val stack = Stack<Int>()
+
+            stack.push(end)
+
+            while (stack.isNotEmpty()) {
+                val current = stack.pop()
+                path.add(0, graph[current])
+
+                if (current == start) {
+                    break
+                }
+
+                for (i in 0 until size) {
+                    if (distances[start][current] == distances[start][i] + distances[i][current]) {
+                        stack.push(i)
+                        break
+                    }
+                }
+            }
+
+            return path
+        }
+
+        private fun highlightBestPath(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>, bestPath: List<GraphNode>) {
+            for (i in 0 until bestPath.size - 1) {
+                val currentButton = bestPath[i].button
+                val nextButton = bestPath[i + 1].button
+
+                val connection = arrowConnections.find {
+                    (it.button1 == currentButton && it.button2 == nextButton) ||
+                            (it.button1 == nextButton && it.button2 == currentButton)
+                }
+
+                connection?.textView?.setTextColor(ContextCompat.getColor(context, R.color.green))
+            }
+        }
+    }
+
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,12 +215,9 @@ class MainActivity : AppCompatActivity() {
 
             }
 
-            override fun onStartTrackingTouch(seek: SeekBar?) {
+            override fun onStartTrackingTouch(seek: SeekBar?) {}
 
-            }
-
-            override fun onStopTrackingTouch(seek: SeekBar?) {
-            }
+            override fun onStopTrackingTouch(seek: SeekBar?) {}
         })
 
         var startPictureSupport = 0
@@ -156,26 +257,21 @@ class MainActivity : AppCompatActivity() {
         algorithmButton.setOnClickListener {
             val isRouteValid = isRouteValid(graph, selectedStartRouteButon, selectedEndRouteButon)
 
-            // Sprawdź, czy punkt startowy i końcowy są różne
             if (selectedStartRouteButon == selectedEndRouteButon) {
-                // Punkty startowy i końcowy są takie same, więc wyświetl komunikat o błędzie
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Błąd trasy")
                 builder.setMessage("Punkt startowy i końcowy muszą być różne.")
                 builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
                 val alertDialog = builder.create()
                 alertDialog.show()
-                return@setOnClickListener  // Przerwij działanie metody, nie ma sensu kontynuować
+                return@setOnClickListener
             }
 
             if (isRouteValid) {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Trasa")
-                builder.setMessage("Trasa jest mozliwa")
-                builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
-                val alertDialog = builder.create()
-                alertDialog.show()
-        } else {
+                val graphSolver = GraphSolver(graph.size, this)
+                graphSolver.runFloydWarshall(graph, arrowConnections)
+            }
+            else {
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Błąd trasy")
                 builder.setMessage("Nie istnieje trasa pomiędzy punktem startowym a końcowym.")
@@ -203,6 +299,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //METHODS USED FOR CHECKING IF ANY ROUTE EXISTS
     private fun isRouteValid(graph: List<GraphNode>, start: Button?, end: Button?): Boolean {
         if (start == null || end == null) return false
 
@@ -224,7 +321,6 @@ class MainActivity : AppCompatActivity() {
                 (it.button1 == current && it.button2 == neighbor.button) || (it.button1 == neighbor.button && it.button2 == current)
             }
 
-            // Dodaj warunek sprawdzający, czy waga (wartość na textView) jest różna od zera
             if (connection?.textView?.text?.toString()?.toIntOrNull() != 0 && neighbor.button !in visited) {
                 if (dfs(graph, neighbor.button, end, visited)) {
                     return true
