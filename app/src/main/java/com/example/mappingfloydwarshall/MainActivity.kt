@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
 
     lateinit var arrowConnections: MutableList<ArrowConnection>
+    lateinit var graph: List<GraphNode>
     data class ArrowConnection(
         val button1: Button,
         val button2: Button,
@@ -33,117 +34,12 @@ class MainActivity : AppCompatActivity() {
         val connectedNodes: List<GraphNode>
     )
 
-    class GraphSolver(private val size: Int, private val context: Context) {
-
-        private val INF = Int.MAX_VALUE
-        private lateinit var distances: Array<IntArray>
-
-        fun runFloydWarshall(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>): List<GraphNode> {
-            initializeDistances(graph, arrowConnections)
-
-            for (k in 0 until size) {
-                for (i in 0 until size) {
-                    for (j in 0 until size) {
-                        if (distances[i][k] != INF && distances[k][j] != INF &&
-                            distances[i][k] + distances[k][j] < distances[i][j]
-                        ) {
-                            distances[i][j] = distances[i][k] + distances[k][j]
-                        }
-                    }
-                }
-            }
-
-            // Find the best path based on the distances matrix
-            val bestPath = findBestPath(graph)
-
-            // Highlight the best path
-            highlightBestPath(graph, arrowConnections, bestPath)
-
-            return bestPath
-        }
-
-        private fun initializeDistances(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
-            distances = Array(size) { IntArray(size) { INF } }
-
-            for (i in 0 until size) {
-                distances[i][i] = 0
-                val currentNode = graph[i]
-                for (neighbor in currentNode.connectedNodes) {
-                    val connection = arrowConnections.find {
-                        (it.button1 == currentNode.button && it.button2 == neighbor.button) ||
-                                (it.button1 == neighbor.button && it.button2 == currentNode.button)
-                    }
-                    val neighborIndex = graph.indexOfFirst { it.button == neighbor.button }
-                    val weight = connection?.textView?.text?.toString()?.toIntOrNull() ?: 0
-                    distances[i][neighborIndex] = weight
-                }
-            }
-        }
-
-        private fun findBestPath(graph: List<GraphNode>): List<GraphNode> {
-            // Find the best path based on the distances matrix
-            var bestPath: List<GraphNode>? = null
-            var minWeight = INF
-
-            for (i in 0 until size) {
-                for (j in 0 until size) {
-                    if (i != j && distances[i][j] < minWeight) {
-                        minWeight = distances[i][j]
-                        bestPath = reconstructPath(graph, i, j)
-                    }
-                }
-            }
-
-            return bestPath ?: emptyList()
-        }
-
-        private fun reconstructPath(graph: List<GraphNode>, start: Int, end: Int): List<GraphNode> {
-            val path = mutableListOf<GraphNode>()
-            val stack = Stack<Int>()
-
-            stack.push(end)
-
-            while (stack.isNotEmpty()) {
-                val current = stack.pop()
-                path.add(0, graph[current])
-
-                if (current == start) {
-                    break
-                }
-
-                for (i in 0 until size) {
-                    if (distances[start][current] == distances[start][i] + distances[i][current]) {
-                        stack.push(i)
-                        break
-                    }
-                }
-            }
-
-            return path
-        }
-
-        private fun highlightBestPath(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>, bestPath: List<GraphNode>) {
-            for (i in 0 until bestPath.size - 1) {
-                val currentButton = bestPath[i].button
-                val nextButton = bestPath[i + 1].button
-
-                val connection = arrowConnections.find {
-                    (it.button1 == currentButton && it.button2 == nextButton) ||
-                            (it.button1 == nextButton && it.button2 == currentButton)
-                }
-
-                connection?.textView?.setTextColor(ContextCompat.getColor(context, R.color.green))
-            }
-        }
-    }
-
-
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //ARROWCONNECTIONS INITIALIZATION
+        //CONNECTIONS INITIALIZATION
         arrowConnections = mutableListOf(
             ArrowConnection(findViewById(R.id.forestButton), findViewById(R.id.swampsButton), findViewById(R.id.forestSwampsText)),
             ArrowConnection(findViewById(R.id.forestButton), findViewById(R.id.mountainsButton), findViewById(R.id.forestMountainsText)),
@@ -268,8 +164,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (isRouteValid) {
-                val graphSolver = GraphSolver(graph.size, this)
-                graphSolver.runFloydWarshall(graph, arrowConnections)
+                runFloydWarshall(graph, arrowConnections)
+                highlightShortestPath(graph, arrowConnections)
             }
             else {
                 val builder = AlertDialog.Builder(this)
@@ -329,5 +225,83 @@ class MainActivity : AppCompatActivity() {
         }
 
         return false
+    }
+
+    //METHODS USED FOR ESTABLISHING THE BEST ROUTE
+    private lateinit var distances: Array<IntArray>
+    private val MAXINT = Int.MAX_VALUE
+    private fun runFloydWarshall(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
+        val numberOfVertices = graph.size
+        distances = Array(numberOfVertices) { IntArray(numberOfVertices) { MAXINT } }
+
+        for (i in 0 until numberOfVertices) {
+            distances[i][i] = 0
+        }
+
+        for (connection in arrowConnections) {
+            val (button1, button2, textView) = connection
+            val button1Index = graph.indexOfFirst { it.button == button1 }
+            val button2Index = graph.indexOfFirst { it.button == button2 }
+            distances[button1Index][button2Index] = textView.text.toString().toInt()
+            distances[button2Index][button1Index] = textView.text.toString().toInt()
+        }
+
+        for (k in 0 until numberOfVertices) {
+            for (i in 0 until numberOfVertices) {
+                for (j in 0 until numberOfVertices) {
+                    if (distances[i][k] != MAXINT && distances[k][j] != MAXINT &&
+                        distances[i][k] + distances[k][j] < distances[i][j]
+                    ) {
+                        distances[i][j] = distances[i][k] + distances[k][j]
+                    }
+                }
+            }
+        }
+    }
+
+    private fun highlightShortestPath(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
+        val start = selectedStartRouteButon
+        val end = selectedEndRouteButon
+
+        if (start != null && end != null) {
+            val startNode = graph.find { it.button == start }
+            val endNode = graph.find { it.button == end }
+
+            val path = getShortestPath(startNode, endNode)
+
+            for (i in path.indices) {
+                if (i < path.size - 1) {
+                    val connection = arrowConnections.find {
+                        (it.button1 == path[i].button && it.button2 == path[i + 1].button) ||
+                                (it.button1 == path[i + 1].button && it.button2 == path[i].button)
+                    }
+                    connection?.textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
+                }
+            }
+        }
+    }
+
+    private fun getShortestPath(start: GraphNode?, end: GraphNode?): List<GraphNode> {
+        val path = mutableListOf<GraphNode>()
+
+        if (start != null && end != null) {
+            path.add(start)
+            val startNodeIndex = graph.indexOf(start)
+            val endNodeIndex = graph.indexOf(end)
+
+            var current = endNodeIndex
+
+            while (current != startNodeIndex) {
+                for (i in graph.indices) {
+                    if (distances[startNodeIndex][current] == distances[startNodeIndex][i] + distances[i][current]) {
+                        path.add(graph[i])
+                        current = i
+                        break
+                    }
+                }
+            }
+        }
+
+        return path.reversed()
     }
 }
