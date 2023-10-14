@@ -31,7 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     data class GraphNode(
         val button: Button,
-        val connectedNodes: List<GraphNode>
+        val connectedNodes: List<GraphNode>,
+        var parentIndex: Int = -1
     )
 
     @SuppressLint("MissingInflatedId")
@@ -242,8 +243,10 @@ class MainActivity : AppCompatActivity() {
             val (button1, button2, textView) = connection
             val button1Index = graph.indexOfFirst { it.button == button1 }
             val button2Index = graph.indexOfFirst { it.button == button2 }
-            distances[button1Index][button2Index] = textView.text.toString().toInt()
-            distances[button2Index][button1Index] = textView.text.toString().toInt()
+            val weight = textView.text.toString().toInt()
+
+            distances[button1Index][button2Index] = weight
+            distances[button2Index][button1Index] = weight  // Dodaj odwrotny kierunek
         }
 
         for (k in 0 until numberOfVertices) {
@@ -259,6 +262,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun highlightShortestPath(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
         val start = selectedStartRouteButon
         val end = selectedEndRouteButon
@@ -267,7 +271,7 @@ class MainActivity : AppCompatActivity() {
             val startNode = graph.find { it.button == start }
             val endNode = graph.find { it.button == end }
 
-            val path = getShortestPath(startNode, endNode)
+            val path = getShortestPath(graph, startNode, endNode)
 
             for (i in path.indices) {
                 if (i < path.size - 1) {
@@ -281,27 +285,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getShortestPath(start: GraphNode?, end: GraphNode?): List<GraphNode> {
+    private fun getShortestPath(graph: List<GraphNode>, start: GraphNode?, end: GraphNode?): List<GraphNode> {
         val path = mutableListOf<GraphNode>()
 
         if (start != null && end != null) {
             path.add(start)
-            val startNodeIndex = graph.indexOf(start)
-            val endNodeIndex = graph.indexOf(end)
+
+            val startNodeIndex = findNodeIndex(graph, start)
+            val endNodeIndex = findNodeIndex(graph, end)
 
             var current = endNodeIndex
+            var loopGuard = 0
 
-            while (current != startNodeIndex) {
+            while (current != startNodeIndex && loopGuard < graph.size) {
                 for (i in graph.indices) {
-                    if (distances[startNodeIndex][current] == distances[startNodeIndex][i] + distances[i][current]) {
+                    if (graph[i] == graph[current]) {
                         path.add(graph[i])
                         current = i
                         break
                     }
                 }
+                loopGuard++
             }
         }
+        return path
+    }
 
-        return path.reversed()
+
+    private fun findNodeIndex(graph: List<GraphNode>, node: GraphNode): Int {
+        for (i in graph.indices) {
+            if (graph[i] === node) {
+                return i
+            }
+        }
+        return -1
     }
 }
