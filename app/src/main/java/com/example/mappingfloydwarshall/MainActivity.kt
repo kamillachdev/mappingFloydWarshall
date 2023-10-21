@@ -1,7 +1,6 @@
 package com.example.mappingfloydwarshall
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.SeekBar
@@ -9,7 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import java.util.Stack
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,18 +21,12 @@ class MainActivity : AppCompatActivity() {
 
 
     lateinit var arrowConnections: MutableList<ArrowConnection>
-    lateinit var graph: List<GraphNode>
     data class ArrowConnection(
         val button1: Button,
         val button2: Button,
         val textView: TextView
     )
 
-    data class GraphNode(
-        val button: Button,
-        val connectedNodes: List<GraphNode>,
-        var parentIndex: Int = -1
-    )
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,43 +35,46 @@ class MainActivity : AppCompatActivity() {
 
         //CONNECTIONS INITIALIZATION
         arrowConnections = mutableListOf(
-            ArrowConnection(findViewById(R.id.forestButton), findViewById(R.id.swampsButton), findViewById(R.id.forestSwampsText)),
-            ArrowConnection(findViewById(R.id.forestButton), findViewById(R.id.mountainsButton), findViewById(R.id.forestMountainsText)),
-            ArrowConnection(findViewById(R.id.forestButton), findViewById(R.id.caveButton), findViewById(R.id.forestCaveText)),
-            ArrowConnection(findViewById(R.id.mountainsButton), findViewById(R.id.swampsButton), findViewById(R.id.mountainsSwampsText)),
-            ArrowConnection(findViewById(R.id.mountainsButton), findViewById(R.id.caveButton), findViewById(R.id.mountainsCaveText)),
-            ArrowConnection(findViewById(R.id.mountainsButton), findViewById(R.id.jungleButton), findViewById(R.id.mountainsJungleText)),
-            ArrowConnection(findViewById(R.id.swampsButton), findViewById(R.id.jungleButton), findViewById(R.id.swampsJungleText)),
-            ArrowConnection(findViewById(R.id.caveButton), findViewById(R.id.jungleButton), findViewById(R.id.caveJungleText))
-        )
-
-        val graph: List<GraphNode> = listOf(
-            GraphNode(findViewById(R.id.forestButton), listOf(
-                GraphNode(findViewById(R.id.swampsButton), emptyList()),
-                GraphNode(findViewById(R.id.mountainsButton), emptyList()),
-                GraphNode(findViewById(R.id.caveButton), emptyList())
-            )),
-            GraphNode(findViewById(R.id.swampsButton), listOf(
-                GraphNode(findViewById(R.id.forestButton), emptyList()),
-                GraphNode(findViewById(R.id.mountainsButton), emptyList()),
-                GraphNode(findViewById(R.id.jungleButton), emptyList())
-            )),
-            GraphNode(findViewById(R.id.mountainsButton), listOf(
-                GraphNode(findViewById(R.id.forestButton), emptyList()),
-                GraphNode(findViewById(R.id.swampsButton), emptyList()),
-                GraphNode(findViewById(R.id.caveButton), emptyList()),
-                GraphNode(findViewById(R.id.jungleButton), emptyList())
-            )),
-            GraphNode(findViewById(R.id.caveButton), listOf(
-                GraphNode(findViewById(R.id.forestButton), emptyList()),
-                GraphNode(findViewById(R.id.mountainsButton), emptyList()),
-                GraphNode(findViewById(R.id.jungleButton), emptyList())
-            )),
-            GraphNode(findViewById(R.id.jungleButton), listOf(
-                GraphNode(findViewById(R.id.swampsButton), emptyList()),
-                GraphNode(findViewById(R.id.mountainsButton), emptyList()),
-                GraphNode(findViewById(R.id.caveButton), emptyList())
-            ))
+            ArrowConnection(
+                findViewById(R.id.forestButton),
+                findViewById(R.id.swampsButton),
+                findViewById(R.id.forestSwampsText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.forestButton),
+                findViewById(R.id.mountainsButton),
+                findViewById(R.id.forestMountainsText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.forestButton),
+                findViewById(R.id.caveButton),
+                findViewById(R.id.forestCaveText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.mountainsButton),
+                findViewById(R.id.swampsButton),
+                findViewById(R.id.mountainsSwampsText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.mountainsButton),
+                findViewById(R.id.caveButton),
+                findViewById(R.id.mountainsCaveText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.mountainsButton),
+                findViewById(R.id.jungleButton),
+                findViewById(R.id.mountainsJungleText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.swampsButton),
+                findViewById(R.id.jungleButton),
+                findViewById(R.id.swampsJungleText)
+            ),
+            ArrowConnection(
+                findViewById(R.id.caveButton),
+                findViewById(R.id.jungleButton),
+                findViewById(R.id.caveJungleText)
+            )
         )
 
 
@@ -91,8 +87,8 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle("OBSŁUGA PROGRAMU")
         builder.setMessage("1. Naciśnij jeden z obrazków\n2. Wybierz wagę za pomocą slider'a\n3. Naciśnij inny obrazek, który jest połączony strzałką z poprzednio klikniętym obrazkiem\n4. Powtarzaj poprzednie 3 kroki aby ustalić wiecej wag(opcjonalne)\n5. Przycisk kliknięty jako pierwszy będzie użyty jako początek trasy, a ostatni jako koniec trasy\n6. Naciśnij przycisk 'WYZNACZ TRASĘ' aby wyznaczyć najkrótszą trasę - podświetli się ona na zielono\n7. Naciśnij przycisk 'RESET WAGI' aby wyzerować wszystkie ustawione wagi(opcjonalne)")
         builder.setCancelable(false)
-        builder.setPositiveButton("OK") {
-            dialog, which -> dialog.cancel()
+        builder.setPositiveButton("OK") { dialog, which ->
+            dialog.cancel()
         }
         val alertDialog = builder.create()
         alertDialog.show()
@@ -119,10 +115,16 @@ class MainActivity : AppCompatActivity() {
 
         var startPictureSupport = 0
         //PICTURES BUTTONS FUNCTIONALITY
-        val buttonsArray: Array<Button> = arrayOf(findViewById<Button>(R.id.forestButton), findViewById<Button>(R.id.swampsButton), findViewById<Button>(R.id.mountainsButton), findViewById<Button>(R.id.caveButton), findViewById<Button>(R.id.jungleButton))
+        val buttonsArray: Array<Button> = arrayOf(
+            findViewById<Button>(R.id.forestButton),
+            findViewById<Button>(R.id.swampsButton),
+            findViewById<Button>(R.id.mountainsButton),
+            findViewById<Button>(R.id.caveButton),
+            findViewById<Button>(R.id.jungleButton)
+        )
         buttonsArray.forEachIndexed { index, button ->
             button.setOnClickListener {
-                if(seekBarProgress != 0) {
+                if (seekBarProgress != 0) {
                     if (startPictureSupport == 0) {
                         selectedStartRouteButon = button
                     }
@@ -152,8 +154,6 @@ class MainActivity : AppCompatActivity() {
         val algorithmButton = findViewById<Button>(R.id.algorithmButton)
 
         algorithmButton.setOnClickListener {
-            val isRouteValid = isRouteValid(graph, selectedStartRouteButon, selectedEndRouteButon)
-
             if (selectedStartRouteButon == selectedEndRouteButon) {
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Błąd trasy")
@@ -164,160 +164,108 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (isRouteValid) {
-                runFloydWarshall(graph, arrowConnections)
-                highlightShortestPath(graph, arrowConnections)
-            }
-            else {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Błąd trasy")
-                builder.setMessage("Nie istnieje trasa pomiędzy punktem startowym a końcowym.")
-                builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
-                val alertDialog = builder.create()
-                alertDialog.show()
-            }
+            //here will be called method that will set the best path
+            val activeConnectionsList = CheckConnections()
+            val potentialRoutes = CheckPotentialRoutes(selectedStartRouteButon, selectedEndRouteButon)
+            val bestPath = CheckBestPath(potentialRoutes)
+            HighlightBestPath(bestPath)
         }
 
-        //RESET BUTTON FUNCTIONALITY
-        val resetButton = findViewById<Button>(R.id.resetButton)
+            //RESET BUTTON FUNCTIONALITY
+            val resetButton = findViewById<Button>(R.id.resetButton)
 
-        resetButton.setOnClickListener {
-            arrowConnections.forEach { connection ->
-                connection.textView.text = "0"
-                connection.textView.setTextColor(defaultTextColor)
-                selectedEndRouteButon = null
-                selectedStartRouteButon = null
-                startPictureSupport = 0
+            resetButton.setOnClickListener {
+                arrowConnections.forEach { connection ->
+                    connection.textView.text = "0"
+                    connection.textView.setTextColor(defaultTextColor)
+                    selectedEndRouteButon = null
+                    selectedStartRouteButon = null
+                    selectedFirstButton = null
+                    selectedSecondButton = null
+                    startPictureSupport = 0
 
-                weightText.text = "0"
-                seek.progress = 0
-                seekBarProgress = 0
-            }
-        }
-    }
-
-    //METHODS USED FOR CHECKING IF ANY ROUTE EXISTS
-    private fun isRouteValid(graph: List<GraphNode>, start: Button?, end: Button?): Boolean {
-        if (start == null || end == null) return false
-
-        val visited = mutableSetOf<Button>()
-        return dfs(graph, start, end, visited)
-    }
-
-    private fun dfs(graph: List<GraphNode>, current: Button, end: Button, visited: MutableSet<Button>): Boolean {
-        if (current == end) {
-            return true
-        }
-
-        visited.add(current)
-
-        val currentNode = graph.find { it.button == current }
-
-        currentNode?.connectedNodes?.forEach { neighbor ->
-            val connection = arrowConnections.find {
-                (it.button1 == current && it.button2 == neighbor.button) || (it.button1 == neighbor.button && it.button2 == current)
-            }
-
-            if (connection?.textView?.text?.toString()?.toIntOrNull() != 0 && neighbor.button !in visited) {
-                if (dfs(graph, neighbor.button, end, visited)) {
-                    return true
+                    weightText.text = "0"
+                    seek.progress = 0
+                    seekBarProgress = 0
                 }
             }
         }
-
-        return false
-    }
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
-    private lateinit var distances: Array<IntArray>
-    private val MAXINT = Int.MAX_VALUE
-    private fun runFloydWarshall(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
-        val numberOfVertices = graph.size
-        distances = Array(numberOfVertices) { IntArray(numberOfVertices) { MAXINT } }
-
-        for (i in 0 until numberOfVertices) {
-            distances[i][i] = 0
-        }
-
-        for (connection in arrowConnections) {
-            val (button1, button2, textView) = connection
-            val button1Index = graph.indexOfFirst { it.button == button1 }
-            val button2Index = graph.indexOfFirst { it.button == button2 }
-            val weight = textView.text.toString().toInt()
-
-            distances[button1Index][button2Index] = weight
-            distances[button2Index][button1Index] = weight  // Dodaj odwrotny kierunek
-        }
-
-        for (k in 0 until numberOfVertices) {
-            for (i in 0 until numberOfVertices) {
-                for (j in 0 until numberOfVertices) {
-                    if (distances[i][k] != MAXINT && distances[k][j] != MAXINT &&
-                        distances[i][k] + distances[k][j] < distances[i][j]
-                    ) {
-                        distances[i][j] = distances[i][k] + distances[k][j]
-                    }
-                }
+    private fun CheckConnections(): List<TextView>
+    {
+        val activeConnections = mutableListOf<TextView>()
+        for(connection in arrowConnections) {
+            val text = connection.textView.text.toString()
+            if (text != "0") {
+                activeConnections.add(connection.textView)
             }
         }
+        return activeConnections
     }
 
-
-    private fun highlightShortestPath(graph: List<GraphNode>, arrowConnections: List<ArrowConnection>) {
-        val start = selectedStartRouteButon
-        val end = selectedEndRouteButon
-
-        if (start != null && end != null) {
-            val startNode = graph.find { it.button == start }
-            val endNode = graph.find { it.button == end }
-
-            val path = getShortestPath(graph, startNode, endNode)
-
-            for (i in path.indices) {
-                if (i < path.size - 1) {
-                    val connection = arrowConnections.find {
-                        (it.button1 == path[i].button && it.button2 == path[i + 1].button) ||
-                                (it.button1 == path[i + 1].button && it.button2 == path[i].button)
-                    }
-                    connection?.textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
-                }
-            }
+    private fun CheckPotentialRoutes(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView>>
+    {
+        var potentialRoutes = mutableListOf<MutableList<TextView>>()
+        //first grade routes
+        var potentialGradeOneRoutes = mutableListOf<TextView>()
+        var potentialGradeOneRoute = arrowConnections.find { (it.button1 == startButton && it.button2 == endButton) || (it.button1 == endButton && it.button2 == startButton)}
+        if (potentialGradeOneRoute != null) {
+            potentialGradeOneRoutes.add(potentialGradeOneRoute.textView)
         }
+        potentialRoutes.add(potentialGradeOneRoutes)
+        //second grade routes    // work here - find and add potential routes for the second grade routes
+
+        //third grade routes    // work here - find potential routes for the second grade routes
+
+        return potentialRoutes
     }
 
-    private fun getShortestPath(graph: List<GraphNode>, start: GraphNode?, end: GraphNode?): List<GraphNode> {
-        val path = mutableListOf<GraphNode>()
-
-        if (start != null && end != null) {
-            path.add(start)
-
-            val startNodeIndex = findNodeIndex(graph, start)
-            val endNodeIndex = findNodeIndex(graph, end)
-
-            var current = endNodeIndex
-            var loopGuard = 0
-
-            while (current != startNodeIndex && loopGuard < graph.size) {
-                for (i in graph.indices) {
-                    if (graph[i] == graph[current]) {
-                        path.add(graph[i])
-                        current = i
-                        break
-                    }
-                }
-                loopGuard++
-            }
+    private fun CheckBestPath(potentialRoutes: MutableList<MutableList<TextView>>): MutableList<TextView>
+    {
+        val bestPath = mutableListOf<TextView>()
+        for(textView in potentialRoutes[0]) { //work here - if there is only one potentialRoute, return it instantly, if there is no potentialRoutes, return null, and then if bestPath in highlight method is null, show alert, that there are no paths, and if there are more the one paths, count their weight and return the one that have the least weight
+            bestPath.add(textView)
         }
-        return path
+        return bestPath
     }
-
-
-    private fun findNodeIndex(graph: List<GraphNode>, node: GraphNode): Int {
-        for (i in graph.indices) {
-            if (graph[i] === node) {
-                return i
-            }
+    private fun HighlightBestPath(bestPath: MutableList<TextView>)
+    {
+        for(textView in bestPath) {
+            textView.setTextColor(ContextCompat.getColor(this, R.color.green))
         }
-        return -1
     }
 }
+
+/*
+
+Jak ustalic najlepsza trase?
+Na postawie punktu startowego i koncowego trzeba ustalic
+wszystkie *potencjalne trasy*, i sprawdzic, czy ktoras z nich jest
+mozliwa do przejscia za pomoca listy activeConnections, ktora
+przechowuje aktywne polaczenia, jezeli trasa istnieje, to
+zapisuje ja do listy list, kazda lista listy bedzie zawierac
+textViews ktore tworza trase od pierwszego polaczenia do
+ostatniego, jezeli mozliwa trasa bedzie tylko jedna, to od razu
+wyswietlam ja na zielono i gotowe, jezeli nie ma zadnej
+mozliwej trasy, to wyswietlam powiadomienie ze zadna trasa nie
+jest mozliwa, a jezeli mozliwych tras jest wiecej niz jedna, to
+przechodze petlami przez kazda liste i obliczam sume wartosci
+ktore posiadaja textViews, ta lista ktora bedzie miec
+najmniejsza sume podswietlana jest na zielono, KONIEC
+
+Jak ustalic wszystkie *potencjalne trasy*?
+Najpierw sprawdzam czy jest mozliwe polaczenie 1-stopniowe(tylko
+jedno laczenie pomiedzy pierwszym i ostatnim punktem)(moze
+wystapic tylko raz, jezeli jest znalezione to omijane
+jest szukanie 3-stopniowych), jezeli
+jest to dodaje je do potencjalncych sciezek, potem sprawdzam
+polaczenia 2-stopniowe, czyli takie ktore sa polaczone z obrazkiem,
+ktory laczy obrazek startowy i koncowy(laczenie
+tego typu moze wystapic trzy razy),na koncu sprawdzamy
+polaczenia 3-stopniowe, czyli takie ktore wystepuja tylko
+jezeli punkt startowy i koncowy sa na przeciwko siebie po bokach
+grafu, trasa ta zawsze przechodzi przez bok, potem srodek, i do
+celu koncowego, sa one zawsze dwie
+
+ */
