@@ -21,10 +21,19 @@ class MainActivity : AppCompatActivity() {
 
 
     lateinit var arrowConnections: MutableList<ArrowConnection>
+    lateinit var buttonConnections: MutableList<ButtonConnection>
     data class ArrowConnection(
         val button1: Button,
         val button2: Button,
         val textView: TextView
+    )
+
+    data class ButtonConnection(
+        val button: Button,
+        val textView1: TextView,
+        val textView2: TextView,
+        val textView3: TextView,
+        val textView4: TextView?
     )
 
 
@@ -75,6 +84,44 @@ class MainActivity : AppCompatActivity() {
                 findViewById(R.id.jungleButton),
                 findViewById(R.id.caveJungleText)
             )
+        )
+
+        buttonConnections = mutableListOf(
+            ButtonConnection(
+                findViewById(R.id.forestButton),
+                findViewById(R.id.forestSwampsText),
+                findViewById(R.id.forestMountainsText),
+                findViewById(R.id.forestCaveText),
+                null
+            ),
+            ButtonConnection(
+                findViewById(R.id.swampsButton),
+                findViewById(R.id.forestSwampsText),
+                findViewById(R.id.mountainsSwampsText),
+                findViewById(R.id.swampsJungleText),
+                null
+            ),
+            ButtonConnection(
+                findViewById(R.id.jungleButton),
+                findViewById(R.id.swampsJungleText),
+                findViewById(R.id.mountainsJungleText),
+                findViewById(R.id.caveJungleText),
+                null
+            ),
+            ButtonConnection(
+                findViewById(R.id.caveButton),
+                findViewById(R.id.forestCaveText),
+                findViewById(R.id.mountainsCaveText),
+                findViewById(R.id.caveJungleText),
+                null
+            ),
+            ButtonConnection(
+                findViewById(R.id.mountainsButton),
+                findViewById(R.id.forestMountainsText),
+                findViewById(R.id.mountainsSwampsText),
+                findViewById(R.id.mountainsJungleText),
+                findViewById(R.id.mountainsCaveText),
+            ),
         )
 
 
@@ -214,26 +261,68 @@ class MainActivity : AppCompatActivity() {
             potentialGradeOneRoutes.add(potentialGradeOneRoute.textView)
         }
         potentialRoutes.add(potentialGradeOneRoutes)
-        //second grade routes    // work here - find and add potential routes for the second grade routes
 
+        //second grade routes    // work here - find and add potential routes for the second grade routes
+        val potentialGradeTwoRoutes = mutableListOf<TextView>()
+
+        val startButtonTextViews = buttonConnections.find { it.button == startButton }
+        val endButtonTextViews = buttonConnections.find { it.button == endButton }
         //third grade routes    // work here - find potential routes for the second grade routes
 
         return potentialRoutes
     }
 
-    private fun CheckBestPath(potentialRoutes: MutableList<MutableList<TextView>>): MutableList<TextView>
+    private fun CheckBestPath(potentialRoutes: MutableList<MutableList<TextView>>): MutableList<TextView>?
     {
-        val bestPath = mutableListOf<TextView>()
-        for(textView in potentialRoutes[0]) { //work here - if there is only one potentialRoute, return it instantly, if there is no potentialRoutes, return null, and then if bestPath in highlight method is null, show alert, that there are no paths, and if there are more the one paths, count their weight and return the one that have the least weight
-            bestPath.add(textView)
+        var bestPath = mutableListOf<TextView>()
+        if(potentialRoutes.isNullOrEmpty())
+        {
+            return null
         }
+        else if(potentialRoutes.size == 1)
+        {
+            bestPath = potentialRoutes[0]
+        }
+        else {
+            val sumsOfConnectionsWeights = mutableListOf<Int>()
+            var sum = 0
+            for (potentialRoute in potentialRoutes) {
+                for (textView in potentialRoute) {
+                    sum += textView.toString().toInt()
+                }
+                sumsOfConnectionsWeights.add(sum)
+                sum = 0
+            }
+            var minIndex = 0
+            var min = sumsOfConnectionsWeights[0]
+            for (i in 1 until sumsOfConnectionsWeights.size) {
+                if (sumsOfConnectionsWeights[i] < min) {
+                    min = sumsOfConnectionsWeights[i]
+                    minIndex = i
+                }
+            }
+            bestPath = potentialRoutes[minIndex]
+        }
+
         return bestPath
     }
-    private fun HighlightBestPath(bestPath: MutableList<TextView>)
+    private fun HighlightBestPath(bestPath: MutableList<TextView>?)
     {
-        for(textView in bestPath) {
-            textView.setTextColor(ContextCompat.getColor(this, R.color.green))
+        if(bestPath.isNullOrEmpty())
+        {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Błąd trasy")
+            builder.setMessage("Nie istnieje trasa z punktu startowego do punktu końcowego.")
+            builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+            val alertDialog = builder.create()
+            alertDialog.show()
         }
+        else {
+            for (textView in bestPath) {
+                textView.setTextColor(ContextCompat.getColor(this, R.color.green))
+            }
+        }
+
     }
 }
 
