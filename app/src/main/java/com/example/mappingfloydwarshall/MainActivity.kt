@@ -211,8 +211,6 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            //here will be called method that will set the best path
-            val activeConnectionsList = CheckConnections()
             val potentialRoutes = CheckPotentialRoutes(selectedStartRouteButon, selectedEndRouteButon)
             val bestPath = CheckBestPath(potentialRoutes)
             HighlightBestPath(bestPath)
@@ -239,56 +237,96 @@ class MainActivity : AppCompatActivity() {
         }
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
-    private fun CheckConnections(): List<TextView>
-    {
-        val activeConnections = mutableListOf<TextView>()
-        for(connection in arrowConnections) {
-            val text = connection.textView.text.toString()
-            if (text != "0") {
-                activeConnections.add(connection.textView)
-            }
-        }
-        return activeConnections
-    }
-
     private fun CheckPotentialRoutes(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView>>
     {
         var potentialRoutes = mutableListOf<MutableList<TextView>>()
         //first grade routes
-        var potentialGradeOneRoutes = mutableListOf<TextView>()
-        var potentialGradeOneRoute = arrowConnections.find { (it.button1 == startButton && it.button2 == endButton) || (it.button1 == endButton && it.button2 == startButton)}
-        if (potentialGradeOneRoute != null) {
-            potentialGradeOneRoutes.add(potentialGradeOneRoute.textView)
+        var potentialGradeOneRoute = mutableListOf<TextView>()
+
+        var correctConnection = arrowConnections.find { (it.button1 == startButton && it.button2 == endButton) || (it.button1 == endButton && it.button2 == startButton)}
+        if (correctConnection != null) {
+            potentialGradeOneRoute.add(correctConnection.textView)
+            if (potentialGradeOneRoute != null && correctConnection.textView.text.toString() != "0") {
+                potentialRoutes.add(potentialGradeOneRoute)
+            }
         }
-        potentialRoutes.add(potentialGradeOneRoutes)
-
         //second grade routes    // work here - find and add potential routes for the second grade routes
-        val potentialGradeTwoRoutes = mutableListOf<TextView>()
-
         val startButtonTextViews = buttonConnections.find { it.button == startButton }
         val endButtonTextViews = buttonConnections.find { it.button == endButton }
-        //third grade routes    // work here - find potential routes for the second grade routes
+
+        if (startButtonTextViews != null && endButtonTextViews != null)
+        {
+            for (buttonConnection in buttonConnections)
+            {
+                if (buttonConnection.button != startButtonTextViews.button && buttonConnection.button != endButtonTextViews.button)
+                {
+                    val potentialGradeTwoRoute = mutableListOf<TextView>()
+
+                    // Check if any TextView from the current ButtonConnection exists in startButtonTextViews
+                    if ((buttonConnection.textView1 == startButtonTextViews.textView1 || buttonConnection.textView1 == startButtonTextViews.textView2 || buttonConnection.textView1 == startButtonTextViews.textView3 || buttonConnection.textView1 == startButtonTextViews.textView4) && buttonConnection.textView1.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView1)
+                    }
+                    else if ((buttonConnection.textView2 == startButtonTextViews.textView1 || buttonConnection.textView2 == startButtonTextViews.textView2 || buttonConnection.textView2 == startButtonTextViews.textView3 || buttonConnection.textView2 == startButtonTextViews.textView4) && buttonConnection.textView2.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView2)
+                    }
+                    else if ((buttonConnection.textView3 == startButtonTextViews.textView1 || buttonConnection.textView3 == startButtonTextViews.textView2 || buttonConnection.textView3 == startButtonTextViews.textView3 || buttonConnection.textView3 == startButtonTextViews.textView4) && buttonConnection.textView3.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView3)
+                    }
+                    else if ((buttonConnection.textView4 != null && (buttonConnection.textView4 == startButtonTextViews.textView1 || buttonConnection.textView4 == startButtonTextViews.textView2 || buttonConnection.textView4 == startButtonTextViews.textView3 || buttonConnection.textView4 == startButtonTextViews.textView4)) && buttonConnection.textView4.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView4)
+                    }
+
+
+                    if ((buttonConnection.textView1 == endButtonTextViews.textView1 || buttonConnection.textView1 == endButtonTextViews.textView2 || buttonConnection.textView1 == endButtonTextViews.textView3 || buttonConnection.textView1 == endButtonTextViews.textView4) && buttonConnection.textView1.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView1)
+                    }
+                    else if ((buttonConnection.textView2 == endButtonTextViews.textView1 || buttonConnection.textView2 == endButtonTextViews.textView2 || buttonConnection.textView2 == endButtonTextViews.textView3 || buttonConnection.textView2 == endButtonTextViews.textView4) && buttonConnection.textView2.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView2)
+                    }
+                    else if((buttonConnection.textView3 == endButtonTextViews.textView1 || buttonConnection.textView3 == endButtonTextViews.textView2 || buttonConnection.textView3 == endButtonTextViews.textView3 || buttonConnection.textView3 == endButtonTextViews.textView4) && buttonConnection.textView3.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView3)
+                    }
+                    else if((buttonConnection.textView4 != null && (buttonConnection.textView4 == endButtonTextViews.textView1 || buttonConnection.textView4 == endButtonTextViews.textView2 || buttonConnection.textView4 == endButtonTextViews.textView3 || buttonConnection.textView4 == endButtonTextViews.textView4)) && buttonConnection.textView4.text.toString() != "0")
+                    {
+                        potentialGradeTwoRoute.add(buttonConnection.textView4)
+                    }
+
+                    if(potentialGradeTwoRoute.size == 2)
+                    {
+                        potentialRoutes.add(potentialGradeTwoRoute)
+                    }
+                }
+            }
+        }
+        //third grade routes    // work here - find potential routes for the third grade routes
 
         return potentialRoutes
     }
 
     private fun CheckBestPath(potentialRoutes: MutableList<MutableList<TextView>>): MutableList<TextView>?
     {
-        var bestPath = mutableListOf<TextView>()
         if(potentialRoutes.isNullOrEmpty())
         {
             return null
         }
         else if(potentialRoutes.size == 1)
         {
-            bestPath = potentialRoutes[0]
+            return potentialRoutes[0]
         }
-        else {
+        else
+        {
             val sumsOfConnectionsWeights = mutableListOf<Int>()
             var sum = 0
             for (potentialRoute in potentialRoutes) {
                 for (textView in potentialRoute) {
-                    sum += textView.toString().toInt()
+                    sum += textView.text.toString().toInt()
                 }
                 sumsOfConnectionsWeights.add(sum)
                 sum = 0
@@ -301,13 +339,12 @@ class MainActivity : AppCompatActivity() {
                     minIndex = i
                 }
             }
-            bestPath = potentialRoutes[minIndex]
+            return potentialRoutes[minIndex]
         }
-
-        return bestPath
     }
     private fun HighlightBestPath(bestPath: MutableList<TextView>?)
     {
+        val defaultTextColor = findViewById<TextView>(R.id.forestMountainsText).currentTextColor
         if(bestPath.isNullOrEmpty())
         {
             val builder = AlertDialog.Builder(this)
@@ -318,8 +355,14 @@ class MainActivity : AppCompatActivity() {
             alertDialog.show()
         }
         else {
-            for (textView in bestPath) {
-                textView.setTextColor(ContextCompat.getColor(this, R.color.green))
+            val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
+            for (textView in textViews)
+            {
+                textView.setTextColor(defaultTextColor)
+            }
+            for(bestPathTextView in bestPath)
+            {
+                bestPathTextView.setTextColor(ContextCompat.getColor(this, R.color.green))
             }
         }
 
@@ -356,5 +399,10 @@ polaczenia 3-stopniowe, czyli takie ktore wystepuja tylko
 jezeli punkt startowy i koncowy sa na przeciwko siebie po bokach
 grafu, trasa ta zawsze przechodzi przez bok, potem srodek, i do
 celu koncowego, sa one zawsze dwie
+
+Jak ustalic trasy 2-stopnia?
+przechodze przez kazdego buttona i sprawdzam za pomoca listy,
+ktory posiada textViews nalezace do start i end Buttons,
+jezeli takie posiada, to dodaje je do listy
 
  */
