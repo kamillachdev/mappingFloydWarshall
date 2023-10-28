@@ -397,12 +397,28 @@ ktory laczy obrazek startowy i koncowy(laczenie
 tego typu moze wystapic trzy razy),na koncu sprawdzamy
 polaczenia 3-stopniowe, czyli takie ktore wystepuja tylko
 jezeli punkt startowy i koncowy sa na przeciwko siebie po bokach
-grafu, trasa ta zawsze przechodzi przez bok, potem srodek, i do
-celu koncowego, sa one zawsze dwie
+grafu, trasa ta zawsze przechodzi przez bok, potem srodek(albo na odwrot) i do
+celu koncowego, moze byc ich max 4
 
 Jak ustalic trasy 2-stopnia?
 przechodze przez kazdego buttona i sprawdzam za pomoca listy,
 ktory posiada textViews nalezace do start i end Buttons,
 jezeli takie posiada, to dodaje je do listy
+
+ustalanie trasy o wiele lepsza metoda:
+mam startButton, biore sobie buttonConnection do ktorego pasuje
+ten startButton, sprawdzam wszystkie po koleji, jezeli wszystkie
+sa rowne zero, to trasa nie istnieje, jezeli jest jakas trasa
+rozna od zero, to sprawdzam, czy jest jeszcze inna, ktora nie
+jest zerem i ma mniejsza wartosc od tej pierwszej, jezeli
+znalazlem laczenie(textView) ktore ma najmniejsza wartosc i jest
+wieksze od zera, to za pomoca arrowConnections wyszukuje button
+ktory jest polaczony za pomoca znalezionego najlepszego do
+poprzedniego buttona, ustawiam kolor tego laczenia na zielony
+i przestawiam aktualny button z poczatkowego na ten znaleziony,
+powtarzam proces wykluczajac laczenie z ktorego trafilem do tego
+buttona, i jade tak az aktualny button bedzie sie rownac
+endButtonowi(trzeba pamietac, aby przy kazdym zaaktualizowaniu
+akturalnego buttona to sprawdzac)
 
  */
