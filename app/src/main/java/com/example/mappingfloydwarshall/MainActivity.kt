@@ -241,6 +241,7 @@ class MainActivity : AppCompatActivity() {
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
 
     private fun setTheBestPath(startButton: Button?, endButton: Button?) {
+        //variables declarations
         val startButtonConnection = buttonConnections.find { it.button == startButton }
         val endButtonConnection = buttonConnections.find { it.button == endButton }
         var currentButtonConnection = startButtonConnection
@@ -249,10 +250,12 @@ class MainActivity : AppCompatActivity() {
         var isFinalRouteFound = false
         var previousTextView: TextView? = null
 
+        //main algorithm loop that works until the route is found(if there is at least one possible route)
         while(!isFinalRouteFound)
         {
             isRouteFound = false
             val textViews = listOf(currentButtonConnection?.textView1, currentButtonConnection?.textView2, currentButtonConnection?.textView3, currentButtonConnection?.textView4)
+            //first loop to get any textView value that is not equal zero
             for(textView in textViews)
             {
                 if(textView != null && textView.text.toString() != "0")
@@ -260,6 +263,7 @@ class MainActivity : AppCompatActivity() {
                     fastestTextView = textView
                 }
             }
+            //second loop to get the lowest/fastest value
             for (textView in textViews) {
                 if (textView != null) {
                     if (textView.text.toString() != "0" && textView != previousTextView) {
@@ -271,9 +275,12 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            //changing the fastest textView to green
             fastestTextView?.setTextColor(ContextCompat.getColor(this, R.color.green))
 
-            if (isRouteFound) {
+
+            if (isRouteFound)
+            {
                 var currentArrowButtonConnection: ArrowConnection?
 
                 currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
@@ -290,6 +297,7 @@ class MainActivity : AppCompatActivity() {
                 {
                     if (currentArrowButtonConnection.button1 == endButtonConnection.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
                     {
+                        //if best path is found, show alert
                         val builder = AlertDialog.Builder(this)
                         builder.setTitle("Najlepsza trasa")
                         builder.setMessage("Najlepsza trasa została wyznaczona na zielono")
@@ -300,6 +308,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     else
                     {
+                        //if best path is still not found, change the previousTextView to the previous fastestTextView to prevent algorithm from going backwards
                         previousTextView = fastestTextView
                     }
                 }
@@ -318,6 +327,7 @@ class MainActivity : AppCompatActivity() {
     }
     private fun resetTextViewsColor(defaultTextColor: Int)
     {
+        //changes all of the textViews on defaultColor(used to prevent program from showing current and previous best paths to green)
         val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
         for (textView in textViews)
         {
