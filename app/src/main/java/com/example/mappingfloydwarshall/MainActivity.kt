@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import java.util.*
 
+@Suppress("NAME_SHADOWING")
 class MainActivity : AppCompatActivity() {
 
     var seekBarProgress = 0
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     )
 
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -240,8 +241,8 @@ class MainActivity : AppCompatActivity() {
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
 
     private fun SetTheBestPath(startButton: Button?, endButton: Button?) {
-        var startButtonConnection = buttonConnections.find { it.button == startButton }
-        var endButtonConnection = buttonConnections.find { it.button == endButton }
+        val startButtonConnection = buttonConnections.find { it.button == startButton }
+        val endButtonConnection = buttonConnections.find { it.button == endButton }
         var currentButtonConnection = startButtonConnection
         var fastestTextView: TextView? = null
         var isRouteFound: Boolean
@@ -263,9 +264,9 @@ class MainActivity : AppCompatActivity() {
                 if (textView != null) {
                     if (textView.text.toString() != "0" && textView != previousTextView) {
                         isRouteFound = true
-                        if (textView.text.toString().toInt() < fastestTextView?.text.toString().toInt()
+                        if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt()
                         ) {
-                            fastestTextView = textView;
+                            fastestTextView = textView
                         }
                     }
                 }
@@ -287,7 +288,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (currentArrowButtonConnection != null && endButtonConnection != null)
                 {
-                    if (currentArrowButtonConnection.button1 == endButtonConnection?.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
+                    if (currentArrowButtonConnection.button1 == endButtonConnection.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
                     {
                         val builder = AlertDialog.Builder(this)
                         builder.setTitle("Najlepsza trasa")
