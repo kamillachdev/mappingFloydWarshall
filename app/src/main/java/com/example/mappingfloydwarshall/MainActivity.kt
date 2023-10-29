@@ -252,13 +252,18 @@ class MainActivity : AppCompatActivity() {
         {
             isRouteFound = false
             val textViews = listOf(currentButtonConnection?.textView1, currentButtonConnection?.textView2, currentButtonConnection?.textView3, currentButtonConnection?.textView4)
-
+            for(textView in textViews)
+            {
+                if(textView != null && textView.text.toString() != "0")
+                {
+                    fastestTextView = textView
+                }
+            }
             for (textView in textViews) {
                 if (textView != null) {
                     if (textView.text.toString() != "0" && textView != previousTextView) {
-                        fastestTextView = textView //work here - fastestTextView is set even tho it is not the smallest value therefore bestPath is not set by the lowest value, but by the last textView that is not equal 0
                         isRouteFound = true
-                        if (textView.text.toString().toInt() < fastestTextView.text.toString().toInt()
+                        if (textView.text.toString().toInt() < fastestTextView?.text.toString().toInt()
                         ) {
                             fastestTextView = textView;
                         }
