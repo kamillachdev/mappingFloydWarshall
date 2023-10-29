@@ -14,17 +14,17 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     var seekBarProgress = 0
-    var selectedFirstButton: Button? = null //used for setting values between pictures
-    var selectedSecondButton: Button? = null //used for setting values between pictures
+    private var selectedFirstButton: Button? = null //used for setting values between pictures
+    private var selectedSecondButton: Button? = null //used for setting values between pictures
 
-    var selectedStartRouteButon: Button? =
+    private var selectedStartRouteButton: Button? =
         null //first clicked button that will work as the starting point
-    var selectedEndRouteButon: Button? =
+    private var selectedEndRouteButton: Button? =
         null //last clicked button before clicking set the route button that will work as the ending point
 
 
-    lateinit var arrowConnections: MutableList<ArrowConnection>
-    lateinit var buttonConnections: MutableList<ButtonConnection>
+    private lateinit var arrowConnections: MutableList<ArrowConnection>
+    private lateinit var buttonConnections: MutableList<ButtonConnection>
 
     data class ArrowConnection(
         val button1: Button,
@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle("OBSŁUGA PROGRAMU")
         builder.setMessage("1. Naciśnij jeden z obrazków\n2. Wybierz wagę za pomocą slider'a\n3. Naciśnij inny obrazek, który jest połączony strzałką z poprzednio klikniętym obrazkiem\n4. Powtarzaj poprzednie 3 kroki aby ustalić wiecej wag(opcjonalne)\n5. Przycisk kliknięty jako pierwszy będzie użyty jako początek trasy, a ostatni jako koniec trasy\n6. Naciśnij przycisk 'WYZNACZ TRASĘ' aby wyznaczyć najkrótszą trasę - podświetli się ona na zielono\n7. Naciśnij przycisk 'RESET WAGI' aby wyzerować wszystkie ustawione wagi(opcjonalne)")
         builder.setCancelable(false)
-        builder.setPositiveButton("OK") { dialog, which ->
+        builder.setPositiveButton("OK") { dialog, _ ->
             dialog.cancel()
         }
         val alertDialog = builder.create()
@@ -166,17 +166,17 @@ class MainActivity : AppCompatActivity() {
         var startPictureSupport = 0
         //PICTURES BUTTONS FUNCTIONALITY
         val buttonsArray: Array<Button> = arrayOf(
-            findViewById<Button>(R.id.forestButton),
-            findViewById<Button>(R.id.swampsButton),
-            findViewById<Button>(R.id.mountainsButton),
-            findViewById<Button>(R.id.caveButton),
-            findViewById<Button>(R.id.jungleButton)
+            findViewById(R.id.forestButton),
+            findViewById(R.id.swampsButton),
+            findViewById(R.id.mountainsButton),
+            findViewById(R.id.caveButton),
+            findViewById(R.id.jungleButton)
         )
-        buttonsArray.forEachIndexed { index, button ->
+        buttonsArray.forEachIndexed { _, button ->
             button.setOnClickListener {
                 if (seekBarProgress != 0) {
                     if (startPictureSupport == 0) {
-                        selectedStartRouteButon = button
+                        selectedStartRouteButton = button
                     }
 
                     if (selectedFirstButton == null) {
@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
                         arrowConnection?.textView?.text = seekBarProgress.toString()
 
-                        selectedEndRouteButon = selectedSecondButton
+                        selectedEndRouteButton = selectedSecondButton
 
                         selectedFirstButton = null
                         selectedSecondButton = null
@@ -204,18 +204,18 @@ class MainActivity : AppCompatActivity() {
         val algorithmButton = findViewById<Button>(R.id.algorithmButton)
 
         algorithmButton.setOnClickListener {
-            if (selectedStartRouteButon == selectedEndRouteButon) {
+            if (selectedStartRouteButton == selectedEndRouteButton) {
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Błąd trasy")
                 builder.setMessage("Punkt startowy i końcowy muszą być różne.")
-                builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+                builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
                 val alertDialog = builder.create()
                 alertDialog.show()
                 return@setOnClickListener
             }
 
-            ResetTextViewsColor(defaultTextColor)
-            SetTheBestPath(selectedStartRouteButon, selectedEndRouteButon)
+            resetTextViewsColor(defaultTextColor)
+            setTheBestPath(selectedStartRouteButton, selectedEndRouteButton)
         }
 
         //RESET BUTTON FUNCTIONALITY
@@ -225,8 +225,8 @@ class MainActivity : AppCompatActivity() {
             arrowConnections.forEach { connection ->
                 connection.textView.text = "0"
                 connection.textView.setTextColor(defaultTextColor)
-                selectedEndRouteButon = null
-                selectedStartRouteButon = null
+                selectedEndRouteButton = null
+                selectedStartRouteButton = null
                 selectedFirstButton = null
                 selectedSecondButton = null
                 startPictureSupport = 0
@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity() {
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
 
-    private fun SetTheBestPath(startButton: Button?, endButton: Button?) {
+    private fun setTheBestPath(startButton: Button?, endButton: Button?) {
         val startButtonConnection = buttonConnections.find { it.button == startButton }
         val endButtonConnection = buttonConnections.find { it.button == endButton }
         var currentButtonConnection = startButtonConnection
@@ -273,7 +273,7 @@ class MainActivity : AppCompatActivity() {
             }
             fastestTextView?.setTextColor(ContextCompat.getColor(this, R.color.green))
 
-            if (isRouteFound == true) {
+            if (isRouteFound) {
                 var currentArrowButtonConnection: ArrowConnection?
 
                 currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
@@ -293,7 +293,7 @@ class MainActivity : AppCompatActivity() {
                         val builder = AlertDialog.Builder(this)
                         builder.setTitle("Najlepsza trasa")
                         builder.setMessage("Najlepsza trasa została wyznaczona na zielono")
-                        builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+                        builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
                         val alertDialog = builder.create()
                         alertDialog.show()
                         isFinalRouteFound = true
@@ -309,14 +309,14 @@ class MainActivity : AppCompatActivity() {
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Błąd trasy")
                 builder.setMessage("Nie istnieje trasa z punktu startowego do punktu końcowego.")
-                builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+                builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
                 val alertDialog = builder.create()
                 alertDialog.show()
                 isFinalRouteFound = true
             }
         }
     }
-    private fun ResetTextViewsColor(defaultTextColor: Int)
+    private fun resetTextViewsColor(defaultTextColor: Int)
     {
         val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
         for (textView in textViews)
