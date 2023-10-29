@@ -16,12 +16,15 @@ class MainActivity : AppCompatActivity() {
     var selectedFirstButton: Button? = null //used for setting values between pictures
     var selectedSecondButton: Button? = null //used for setting values between pictures
 
-    var selectedStartRouteButon: Button? = null //first clicked button that will work as the starting point
-    var selectedEndRouteButon: Button? = null //last clicked button before clicking set the route button that will work as the ending point
+    var selectedStartRouteButon: Button? =
+        null //first clicked button that will work as the starting point
+    var selectedEndRouteButon: Button? =
+        null //last clicked button before clicking set the route button that will work as the ending point
 
 
     lateinit var arrowConnections: MutableList<ArrowConnection>
     lateinit var buttonConnections: MutableList<ButtonConnection>
+
     data class ArrowConnection(
         val button1: Button,
         val button2: Button,
@@ -125,7 +128,6 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-
         //GETTING DEFAULT FONT COLOR TO SET IT BACK ON RESET
         val defaultTextColor = findViewById<TextView>(R.id.forestMountainsText).currentTextColor
 
@@ -211,33 +213,114 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val potentialRoutes = CheckPotentialRoutes(selectedStartRouteButon, selectedEndRouteButon)
-            val bestPath = CheckBestPath(potentialRoutes)
-            HighlightBestPath(bestPath)
+            ResetTextViewsColor(defaultTextColor)
+            SetTheBestPath(selectedStartRouteButon, selectedEndRouteButon)
         }
 
-            //RESET BUTTON FUNCTIONALITY
-            val resetButton = findViewById<Button>(R.id.resetButton)
+        //RESET BUTTON FUNCTIONALITY
+        val resetButton = findViewById<Button>(R.id.resetButton)
 
-            resetButton.setOnClickListener {
-                arrowConnections.forEach { connection ->
-                    connection.textView.text = "0"
-                    connection.textView.setTextColor(defaultTextColor)
-                    selectedEndRouteButon = null
-                    selectedStartRouteButon = null
-                    selectedFirstButton = null
-                    selectedSecondButton = null
-                    startPictureSupport = 0
+        resetButton.setOnClickListener {
+            arrowConnections.forEach { connection ->
+                connection.textView.text = "0"
+                connection.textView.setTextColor(defaultTextColor)
+                selectedEndRouteButon = null
+                selectedStartRouteButon = null
+                selectedFirstButton = null
+                selectedSecondButton = null
+                startPictureSupport = 0
 
-                    weightText.text = "0"
-                    seek.progress = 0
-                    seekBarProgress = 0
-                }
+                weightText.text = "0"
+                seek.progress = 0
+                seekBarProgress = 0
             }
         }
+    }
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
-    private fun CheckPotentialRoutes(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView>>
+
+    private fun SetTheBestPath(startButton: Button?, endButton: Button?) {
+        var startButtonConnection = buttonConnections.find { it.button == startButton }
+        var endButtonConnection = buttonConnections.find { it.button == endButton }
+        var currentButtonConnection = startButtonConnection
+        var fastestTextView: TextView? = null
+        var isRouteFound: Boolean
+        var isFinalRouteFound = false
+        var previousTextView: TextView? = null
+
+        while(!isFinalRouteFound)
+        {
+            isRouteFound = false
+            val textViews = listOf(currentButtonConnection?.textView1, currentButtonConnection?.textView2, currentButtonConnection?.textView3, currentButtonConnection?.textView4)
+
+            for (textView in textViews) {
+                if (textView != null) {
+                    if (textView.text.toString() != "0" && textView != previousTextView) {
+                        fastestTextView = textView //work here - fastestTextView is set even tho it is not the smallest value therefore bestPath is not set by the lowest value, but by the last textView that is not equal 0
+                        isRouteFound = true
+                        if (textView.text.toString().toInt() < fastestTextView.text.toString().toInt()
+                        ) {
+                            fastestTextView = textView;
+                        }
+                    }
+                }
+            }
+            fastestTextView?.setTextColor(ContextCompat.getColor(this, R.color.green))
+
+            if (isRouteFound == true) {
+                var currentArrowButtonConnection: ArrowConnection?
+
+                currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
+                if (currentArrowButtonConnection == null)
+                {
+                    currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button2 == currentButtonConnection?.button }
+                    currentButtonConnection = buttonConnections.find { it.button == currentArrowButtonConnection?.button1 }
+                }
+                else
+                {
+                    currentButtonConnection = buttonConnections.find { it.button == currentArrowButtonConnection.button2 }
+                }
+                if (currentArrowButtonConnection != null && endButtonConnection != null)
+                {
+                    if (currentArrowButtonConnection.button1 == endButtonConnection?.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
+                    {
+                        val builder = AlertDialog.Builder(this)
+                        builder.setTitle("Najlepsza trasa")
+                        builder.setMessage("Najlepsza trasa została wyznaczona na zielono")
+                        builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+                        val alertDialog = builder.create()
+                        alertDialog.show()
+                        isFinalRouteFound = true
+                    }
+                    else
+                    {
+                        previousTextView = fastestTextView
+                    }
+                }
+            }
+            else
+            {
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("Błąd trasy")
+                builder.setMessage("Nie istnieje trasa z punktu startowego do punktu końcowego.")
+                builder.setPositiveButton("OK") { dialog, which -> dialog.dismiss() }
+                val alertDialog = builder.create()
+                alertDialog.show()
+                isFinalRouteFound = true
+            }
+        }
+    }
+    private fun ResetTextViewsColor(defaultTextColor: Int)
+    {
+        val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
+        for (textView in textViews)
+        {
+            textView.setTextColor(defaultTextColor)
+        }
+    }
+}
+
+    /*private fun CheckPotentialRoutes(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView>>
     {
         var potentialRoutes = mutableListOf<MutableList<TextView>>()
         //first grade routes
@@ -368,6 +451,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 }
+*/
+
 
 /*
 
