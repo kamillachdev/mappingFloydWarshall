@@ -244,11 +244,13 @@ class MainActivity : AppCompatActivity() {
     {
         //changes all of the textViews on defaultColor(used to prevent program from showing current and previous best paths to green)
         val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
+
         for (textView in textViews)
         {
             textView.setTextColor(defaultTextColor)
         }
     }
+
     private fun setTheBestPaths(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView?>> {
         //variables declarations
         val startButtonConnection = buttonConnections.find { it.button == startButton }
@@ -266,6 +268,7 @@ class MainActivity : AppCompatActivity() {
         {
             isRouteFound = false
             val textViews = listOf(currentButtonConnection?.textView1, currentButtonConnection?.textView2, currentButtonConnection?.textView3, currentButtonConnection?.textView4)
+
             //first loop to get any textView value that is not equal zero
             for(textView in textViews)
             {
@@ -274,6 +277,7 @@ class MainActivity : AppCompatActivity() {
                     fastestTextView = textView
                 }
             }
+
             //second loop to get the lowest/fastest value
             for (textView in textViews)
             {
@@ -289,14 +293,15 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+
             //adding fastestTextView to mutable list(fastestPath) that will be returned to the final highlightBestPath function
             fastestPath.add(fastestTextView)
 
             if (isRouteFound)
             {
                 var currentArrowButtonConnection: ArrowConnection?
-
                 currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
+
                 if (currentArrowButtonConnection == null)
                 {
                     currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button2 == currentButtonConnection?.button }
@@ -306,6 +311,7 @@ class MainActivity : AppCompatActivity() {
                 {
                     currentButtonConnection = buttonConnections.find { it.button == currentArrowButtonConnection.button2 }
                 }
+
                 if (currentArrowButtonConnection != null && endButtonConnection != null)
                 {
                     if (currentArrowButtonConnection.button1 == endButtonConnection.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
@@ -341,38 +347,46 @@ class MainActivity : AppCompatActivity() {
         }
         return potentialFastestPaths
     }
+
     private fun setTheBestPath(potentialFastestPaths: MutableList<MutableList<TextView?>>): MutableList<TextView?>
     {
-        val sums: MutableList<Int> = mutableListOf()
-        var sum = 0
-
-        for(potentialFastestPath in potentialFastestPaths)
+        if(potentialFastestPaths.size > 0)
         {
-            for(textView in potentialFastestPath)
-            {
-                sum += textView?.text.toString().toInt()
+            val sums: MutableList<Int> = mutableListOf()
+            var sum = 0
+
+            for (potentialFastestPath in potentialFastestPaths) {
+                for (textView in potentialFastestPath) {
+                    sum += textView?.text.toString().toInt()
+                }
+                sums.add(sum)
             }
-            sums.add(sum)
+
+            var minSum = sums[0]
+            var minSumIndex = 0
+
+            for (i in sums.indices) {
+                if (sums[i] < minSum) {
+                    minSum = sums[i]
+                    minSumIndex = i
+                }
+            }
+            return potentialFastestPaths[minSumIndex]
         }
-
-        var minSum = sums[0]
-        var minSumIndex = 0
-
-        for(i in sums.indices)
+        else
         {
-            if(sums[i] < minSum)
-            {
-                minSum = sums[i]
-                minSumIndex = i
-            }
+            val emptyList: MutableList<TextView?> = mutableListOf()
+            return emptyList
         }
-        return potentialFastestPaths[minSumIndex]
     }
+
     private fun highlightBestPath(bestPath: MutableList<TextView?>)
     {
-        for(textView in bestPath)
+        if(bestPath.size > 0)
         {
-            textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
+            for (textView in bestPath) {
+                textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
+            }
         }
     }
 }
