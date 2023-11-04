@@ -215,7 +215,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             resetTextViewsColor(defaultTextColor)
-            setTheBestPath(selectedStartRouteButton, selectedEndRouteButton)
+            setTheBestPaths(selectedStartRouteButton, selectedEndRouteButton)
+            highlightBestPath(setTheBestPaths(selectedStartRouteButton, selectedEndRouteButton))
         }
 
         //RESET BUTTON FUNCTIONALITY
@@ -240,7 +241,7 @@ class MainActivity : AppCompatActivity() {
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
 
-    private fun setTheBestPath(startButton: Button?, endButton: Button?) {
+    private fun setTheBestPaths(startButton: Button?, endButton: Button?): MutableList<TextView?> {
         //variables declarations
         val startButtonConnection = buttonConnections.find { it.button == startButton }
         val endButtonConnection = buttonConnections.find { it.button == endButton }
@@ -249,6 +250,7 @@ class MainActivity : AppCompatActivity() {
         var isRouteFound: Boolean
         var isFinalRouteFound = false
         var previousTextView: TextView? = null
+        val fastestPath: MutableList<TextView?> = mutableListOf()
 
         //main algorithm loop that works until the route is found(if there is at least one possible route)
         while(!isFinalRouteFound)
@@ -276,8 +278,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             //changing the fastest textView to green
-            fastestTextView?.setTextColor(ContextCompat.getColor(this, R.color.green))
-
+            fastestPath.add(fastestTextView)
 
             if (isRouteFound)
             {
@@ -324,6 +325,7 @@ class MainActivity : AppCompatActivity() {
                 isFinalRouteFound = true
             }
         }
+        return fastestPath
     }
     private fun resetTextViewsColor(defaultTextColor: Int)
     {
@@ -332,6 +334,14 @@ class MainActivity : AppCompatActivity() {
         for (textView in textViews)
         {
             textView.setTextColor(defaultTextColor)
+        }
+    }
+
+    private fun highlightBestPath(bestPath: MutableList<TextView?>)
+    {
+        for(textView in bestPath)
+        {
+            textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
         }
     }
 }
