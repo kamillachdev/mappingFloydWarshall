@@ -275,12 +275,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             //second loop to get the lowest/fastest value
-            for (textView in textViews) {
-                if (textView != null) {
-                    if (textView.text.toString() != "0" && textView != previousTextView) {
+            for (textView in textViews)
+            {
+                if (textView != null)
+                {
+                    if (textView.text.toString() != "0" && textView != previousTextView)
+                    {
                         isRouteFound = true
-                        if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt()
-                        ) {
+                        if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt())
+                        {
                             fastestTextView = textView
                         }
                     }
@@ -354,6 +357,7 @@ class MainActivity : AppCompatActivity() {
 
         var minSum = sums[0]
         var minSumIndex = 0
+
         for(i in sums.indices)
         {
             if(sums[i] < minSum)
