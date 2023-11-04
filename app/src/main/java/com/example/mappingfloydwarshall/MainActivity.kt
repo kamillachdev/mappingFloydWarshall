@@ -213,10 +213,10 @@ class MainActivity : AppCompatActivity() {
                 alertDialog.show()
                 return@setOnClickListener
             }
-
-            resetTextViewsColor(defaultTextColor)
-            setTheBestPaths(selectedStartRouteButton, selectedEndRouteButton)
-            highlightBestPath(setTheBestPaths(selectedStartRouteButton, selectedEndRouteButton))
+            else {
+                resetTextViewsColor(defaultTextColor)
+                highlightBestPath(setTheBestPath(setTheBestPaths(selectedStartRouteButton, selectedEndRouteButton)))
+            }
         }
 
         //RESET BUTTON FUNCTIONALITY
@@ -240,8 +240,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     //METHODS USED FOR ESTABLISHING THE BEST ROUTE
-
-    private fun setTheBestPaths(startButton: Button?, endButton: Button?): MutableList<TextView?> {
+    private fun resetTextViewsColor(defaultTextColor: Int)
+    {
+        //changes all of the textViews on defaultColor(used to prevent program from showing current and previous best paths to green)
+        val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
+        for (textView in textViews)
+        {
+            textView.setTextColor(defaultTextColor)
+        }
+    }
+    private fun setTheBestPaths(startButton: Button?, endButton: Button?): MutableList<MutableList<TextView?>> {
         //variables declarations
         val startButtonConnection = buttonConnections.find { it.button == startButton }
         val endButtonConnection = buttonConnections.find { it.button == endButton }
@@ -250,6 +258,7 @@ class MainActivity : AppCompatActivity() {
         var isRouteFound: Boolean
         var isFinalRouteFound = false
         var previousTextView: TextView? = null
+        val potentialFastestPaths: MutableList<MutableList<TextView?>> = mutableListOf()
         val fastestPath: MutableList<TextView?> = mutableListOf()
 
         //main algorithm loop that works until the route is found(if there is at least one possible route)
@@ -277,7 +286,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            //changing the fastest textView to green
+            //adding fastestTextView to mutable list(fastestPath) that will be returned to the final highlightBestPath function
             fastestPath.add(fastestTextView)
 
             if (isRouteFound)
@@ -306,6 +315,7 @@ class MainActivity : AppCompatActivity() {
                         val alertDialog = builder.create()
                         alertDialog.show()
                         isFinalRouteFound = true
+                        potentialFastestPaths.add(fastestPath)
                     }
                     else
                     {
@@ -323,20 +333,37 @@ class MainActivity : AppCompatActivity() {
                 val alertDialog = builder.create()
                 alertDialog.show()
                 isFinalRouteFound = true
+                fastestPath.clear()
             }
         }
-        return fastestPath
+        return potentialFastestPaths
     }
-    private fun resetTextViewsColor(defaultTextColor: Int)
+    private fun setTheBestPath(potentialFastestPaths: MutableList<MutableList<TextView?>>): MutableList<TextView?>
     {
-        //changes all of the textViews on defaultColor(used to prevent program from showing current and previous best paths to green)
-        val textViews: List<TextView> = listOf(findViewById(R.id.forestSwampsText), findViewById(R.id.forestMountainsText), findViewById(R.id.forestCaveText), findViewById(R.id.mountainsSwampsText), findViewById(R.id.mountainsJungleText), findViewById(R.id.mountainsCaveText), findViewById(R.id.swampsJungleText), findViewById(R.id.caveJungleText))
-        for (textView in textViews)
-        {
-            textView.setTextColor(defaultTextColor)
-        }
-    }
+        val sums: MutableList<Int> = mutableListOf()
+        var sum = 0
 
+        for(potentialFastestPath in potentialFastestPaths)
+        {
+            for(textView in potentialFastestPath)
+            {
+                sum += textView?.text.toString().toInt()
+            }
+            sums.add(sum)
+        }
+
+        var minSum = sums[0]
+        var minSumIndex = 0
+        for(i in sums.indices)
+        {
+            if(sums[i] < minSum)
+            {
+                minSum = sums[i]
+                minSumIndex = i
+            }
+        }
+        return potentialFastestPaths[minSumIndex]
+    }
     private fun highlightBestPath(bestPath: MutableList<TextView?>)
     {
         for(textView in bestPath)
