@@ -255,94 +255,137 @@ class MainActivity : AppCompatActivity() {
         //variables declarations
         val startButtonConnection = buttonConnections.find { it.button == startButton }
         val endButtonConnection = buttonConnections.find { it.button == endButton }
-        var currentButtonConnection = startButtonConnection
-        var fastestTextView: TextView? = null
+        var currentButtonConnection: ButtonConnection?
+        var fastestTextView: TextView?
         var isRouteFound: Boolean
-        var isFinalRouteFound = false
-        var previousTextView: TextView? = null
+        var findingPotentialFastestRoute: Boolean
+        var findingPotentialFastestRoutes = true
+        var previousTextView: TextView?
         val potentialFastestPaths: MutableList<MutableList<TextView?>> = mutableListOf()
         val fastestPath: MutableList<TextView?> = mutableListOf()
 
-        //main algorithm loop that works until the route is found(if there is at least one possible route)
-        while(!isFinalRouteFound)
+        while(findingPotentialFastestRoutes)
         {
+            currentButtonConnection = startButtonConnection
+            fastestTextView = null
             isRouteFound = false
-            val textViews = listOf(currentButtonConnection?.textView1, currentButtonConnection?.textView2, currentButtonConnection?.textView3, currentButtonConnection?.textView4)
-
-            //first loop to get any textView value that is not equal zero
-            for(textView in textViews)
+            findingPotentialFastestRoute = true
+            previousTextView = null
+            while (findingPotentialFastestRoute)
             {
-                if(textView != null && textView.text.toString() != "0")
-                {
-                    fastestTextView = textView
-                }
-            }
+                val textViews = listOf(
+                    currentButtonConnection?.textView1,
+                    currentButtonConnection?.textView2,
+                    currentButtonConnection?.textView3,
+                    currentButtonConnection?.textView4
+                )
 
-            //second loop to get the lowest/fastest value
-            for (textView in textViews)
-            {
-                if (textView != null)
+                if(potentialFastestPaths.size == 0)
                 {
-                    if (textView.text.toString() != "0" && textView != previousTextView)
+                    for (textView in textViews)
                     {
-                        isRouteFound = true
-                        if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt())
+                        if (textView != null && textView.text.toString() != "0")
                         {
                             fastestTextView = textView
                         }
                     }
                 }
-            }
-
-            //adding fastestTextView to mutable list(fastestPath) that will be returned to the final highlightBestPath function
-            fastestPath.add(fastestTextView)
-
-            if (isRouteFound)
-            {
-                var currentArrowButtonConnection: ArrowConnection?
-                currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
-
-                if (currentArrowButtonConnection == null)
-                {
-                    currentArrowButtonConnection = arrowConnections.find { it.textView == fastestTextView && it.button2 == currentButtonConnection?.button }
-                    currentButtonConnection = buttonConnections.find { it.button == currentArrowButtonConnection?.button1 }
-                }
                 else
                 {
-                    currentButtonConnection = buttonConnections.find { it.button == currentArrowButtonConnection.button2 }
+                    for (textView in textViews)
+                    {
+                        if (textView != null && textView.text.toString() != "0" && potentialFastestPaths.none { innerList -> textView in innerList })
+                        {
+                            fastestTextView = textView
+                        }
+                    }
                 }
 
-                if (currentArrowButtonConnection != null && endButtonConnection != null)
+                for (textView in textViews)
                 {
-                    if (currentArrowButtonConnection.button1 == endButtonConnection.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
+                    if (textView != null)
                     {
-                        //if best path is found, show alert
-                        val builder = AlertDialog.Builder(this)
-                        builder.setTitle("Najlepsza trasa")
-                        builder.setMessage("Najlepsza trasa została wyznaczona na zielono")
-                        builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-                        val alertDialog = builder.create()
-                        alertDialog.show()
-                        isFinalRouteFound = true
-                        potentialFastestPaths.add(fastestPath)
+                        if(potentialFastestPaths.size == 0)
+                        {
+                            if (textView.text.toString() != "0" && textView != previousTextView)
+                            {
+                                isRouteFound = true
+                                if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt())
+                                {
+                                    fastestTextView = textView
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (textView.text.toString() != "0" && textView != previousTextView && potentialFastestPaths.none { innerList -> textView in innerList })
+                            {
+                                isRouteFound = true
+                                if (textView.text.toString().toInt() <= fastestTextView?.text.toString().toInt())
+                                {
+                                            fastestTextView = textView
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //adding fastestTextView to mutable list(fastestPath) that will be returned to the final highlightBestPath function
+                fastestPath.add(fastestTextView)
+
+                if (isRouteFound)
+                {
+                    var currentArrowButtonConnection: ArrowConnection?
+                    currentArrowButtonConnection =
+                        arrowConnections.find { it.textView == fastestTextView && it.button1 == currentButtonConnection?.button }
+
+                    if (currentArrowButtonConnection == null)
+                    {
+                        currentArrowButtonConnection =
+                            arrowConnections.find { it.textView == fastestTextView && it.button2 == currentButtonConnection?.button }
+                        currentButtonConnection =
+                            buttonConnections.find { it.button == currentArrowButtonConnection?.button1 }
                     }
                     else
                     {
-                        //if best path is still not found, change the previousTextView to the previous fastestTextView to prevent algorithm from going backwards
-                        previousTextView = fastestTextView
+                        currentButtonConnection =
+                            buttonConnections.find { it.button == currentArrowButtonConnection.button2 }
+                    }
+
+                    if (currentArrowButtonConnection != null && endButtonConnection != null)
+                    {
+                        if (currentArrowButtonConnection.button1 == endButtonConnection.button || currentArrowButtonConnection.button2 == endButtonConnection.button)
+                        {
+                            potentialFastestPaths.add(fastestPath.toMutableList())
+                            fastestPath.clear()
+                            findingPotentialFastestRoute = false
+                        }
+                        else
+                        {
+                            //if best path is still not found, change the previousTextView to the previous fastestTextView to prevent algorithm from going backwards
+                            previousTextView = fastestTextView
+                        }
                     }
                 }
-            }
-            else
-            {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Błąd trasy")
-                builder.setMessage("Nie istnieje trasa z punktu startowego do punktu końcowego.")
-                builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-                val alertDialog = builder.create()
-                alertDialog.show()
-                isFinalRouteFound = true
-                fastestPath.clear()
+                else
+                {
+                    if(potentialFastestPaths.size == 0)
+                    {
+                        val builder = AlertDialog.Builder(this)
+                        builder.setTitle("Błąd trasy")
+                        builder.setMessage("Nie istnieje trasa z punktu startowego do punktu końcowego.")
+                        builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                        val alertDialog = builder.create()
+                        alertDialog.show()
+                        fastestPath.clear()
+                        return potentialFastestPaths
+                    }
+                    else
+                    {
+                        findingPotentialFastestRoute = false
+                        findingPotentialFastestRoutes = false
+                    }
+                }
             }
         }
         return potentialFastestPaths
@@ -360,6 +403,7 @@ class MainActivity : AppCompatActivity() {
                     sum += textView?.text.toString().toInt()
                 }
                 sums.add(sum)
+                sum = 0
             }
 
             var minSum = sums[0]
@@ -373,10 +417,8 @@ class MainActivity : AppCompatActivity() {
             }
             return potentialFastestPaths[minSumIndex]
         }
-        else
-        {
-            val emptyList: MutableList<TextView?> = mutableListOf()
-            return emptyList
+        else {
+            return mutableListOf()
         }
     }
 
@@ -384,9 +426,17 @@ class MainActivity : AppCompatActivity() {
     {
         if(bestPath.size > 0)
         {
-            for (textView in bestPath) {
+            for (textView in bestPath)
+            {
                 textView?.setTextColor(ContextCompat.getColor(this, R.color.green))
             }
+
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Najlepsza trasa")
+            builder.setMessage("Najlepsza trasa została wyznaczona na zielono")
+            builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            val alertDialog = builder.create()
+            alertDialog.show()
         }
     }
 }
